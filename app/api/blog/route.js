@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server'
 import connectDB from '../../../lib/config/db'
 import BlogModel from '../../../lib/models/BlogModel'
-import { writeFile } from 'fs/promises'
-const fs = require('fs');
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 
 const LoadDB = async () => {
     await connectDB()
 }
 
 LoadDB();
+
+// Initialize R2 client
+const r2 = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY
+  },
+  forcePathStyle: true
+});
 
 // Get All Blogs
 export async function GET(request) {
@@ -31,9 +41,17 @@ export async function POST(request) {
         const image = formData.get('image');
         const imageByteData = await image.arrayBuffer();
         const buffer = Buffer.from(imageByteData);
-        const path = `public/uploads/${timestamp}_${image.name}`;
-        await writeFile(path, buffer);
-        const imageUrl = `/uploads/${timestamp}_${image.name}`;
+        
+        // Upload to R2
+        const key = `${timestamp}_${image.name}`;
+        await r2.send(new PutObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: key,
+            Body: buffer,
+            ContentType: image.type
+        }));
+        
+        const imageUrl = `${process.env.R2_PUBLIC_BASE_URL}/${key}`;
         
         const blogData = {
             title: formData.get('title'),
@@ -55,21 +73,26 @@ export async function POST(request) {
 
 // Delete Blog
 export async function DELETE(request) {
-    const blogId = request.nextUrl.searchParams.get('id');
-    if(!blogId) {
-        return NextResponse.json({ error: 'ブログIDが必要です' }, { status: 400 });
-    }
-    const blog = await BlogModel.findByIdAndDelete(blogId);
-    fs.unlink(`public/${blog.image}`, (err) => {
-        if(err) {
-            console.error('Error deleting image:', err);
+    try {
+        const blogId = request.nextUrl.searchParams.get('id');
+        if(!blogId) {
+            return NextResponse.json({ error: 'ブログIDが必要です' }, { status: 400 });
         }
-    });
-    // fs.unlink(`public/${blog.authorImg}`, (err) => {
-    //     if(err) {
-    //         console.error('Error deleting author image:', err);
-    //     }
-    // });
+        
+        const blog = await BlogModel.findByIdAndDelete(blogId);
+        
+        // Delete image from R2
+        if(blog.image && blog.image.includes(process.env.R2_PUBLIC_BASE_URL)) {
+            const key = blog.image.split('/').pop();
+            await r2.send(new DeleteObjectCommand({
+                Bucket: process.env.R2_BUCKET_NAME,
+                Key: key
+            }));
+        }
 
-    return NextResponse.json({ success: true, message: 'ブログが正常に削除されました', blog });
+        return NextResponse.json({ success: true, message: 'ブログが正常に削除されました', blog });
+    } catch (error) {
+        console.error('Error deleting blog:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 }
