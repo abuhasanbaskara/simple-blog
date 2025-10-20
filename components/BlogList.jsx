@@ -25,9 +25,9 @@ const BlogList = () => {
     <div>
         <div className='flex justify-center gap-6 my-10'>
             <button onClick={()=> setMenu('すべて')} className={menu === 'すべて' ? 'bg-black text-white px-4 py-1 rounded-sm' : ''}>すべて</button>
-            <button onClick={()=> setMenu('Technology')} className={menu === 'Technology' ? 'bg-black text-white px-4 py-1 rounded-sm' : ''}>テクノロジー</button>
-            <button onClick={()=> setMenu('Startup')} className={menu === 'Startup' ? 'bg-black text-white px-4 py-1 rounded-sm' : ''}>スタートアップ</button>
-            <button onClick={()=> setMenu('Lifestyle')} className={menu === 'Lifestyle' ? 'bg-black text-white px-4 py-1 rounded-sm' : ''}>ライフスタイル</button>
+            <button onClick={()=> setMenu('テクノロジー')} className={menu === 'テクノロジー' ? 'bg-black text-white px-4 py-1 rounded-sm' : ''}>テクノロジー</button>
+            <button onClick={()=> setMenu('スタートアップ')} className={menu === 'スタートアップ' ? 'bg-black text-white px-4 py-1 rounded-sm' : ''}>スタートアップ</button>
+            <button onClick={()=> setMenu('ライフスタイル')} className={menu === 'ライフスタイル' ? 'bg-black text-white px-4 py-1 rounded-sm' : ''}>ライフスタイル</button>
         </div>
         <div className='flex flex-wrap justify-around gap-1 gap-y-10 mb-16 xl:mx-24'>
             {blogs.filter((item) => menu === 'すべて' ? true : item.category === menu).map((item) => (

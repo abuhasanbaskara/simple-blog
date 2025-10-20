@@ -10,7 +10,7 @@ const page = () => {
   const [data, setData] = useState({
     title: '',
     description: '',
-    category: 'Startup',
+    category: 'スタートアップ',
     authorImg: '/uploads/author_img.png',
     author: 'Baskun',
   });
@@ -47,7 +47,7 @@ const page = () => {
         setData({
           title: '',
           description: '',
-          category: '',
+          category: 'スタートアップ',
           authorImg: '/uploads/author_img.png',
           author: 'Baskun',
         });
@@ -76,9 +76,9 @@ const page = () => {
             <p className='text-xl mt-4'>ブログカテゴリ</p>
             <select name='category' onChange={onChangeHandler} value={data.category} className='w-full sm:w-[200px] mt-4 py-3 border border-gray-300 p-2' required>
                 <option value=''>カテゴリを選択</option>
-                <option value='Technology'>テクノロジー</option>
-                <option value='Startup'>スタートアップ</option>
-                <option value='Lifestyle'>ライフスタイル</option>
+                <option value='テクノロジー'>テクノロジー</option>
+                <option value='スタートアップ'>スタートアップ</option>
+                <option value='ライフスタイル'>ライフスタイル</option>
             </select>
             <br />
             <button type='submit' className='bg-black text-white mt-8 w-40 h-12 rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95'>追加</button>
